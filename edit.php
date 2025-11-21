@@ -9,7 +9,7 @@ function renderEditForm()
   $selected_id = isset($_GET['id']) ? (int)$_GET['id'] : null;
   $contact = null;
 
-  $stmt = $db->query("SELECT id, surname, name FROM contacts ORDER BY surname, name");
+  $stmt = $db->query("SELECT id, surname, name, lastname FROM contacts ORDER BY surname, name");
   $all_contacts = $stmt->fetchAll();
 
   if ($selected_id) {
@@ -65,7 +65,14 @@ function renderEditForm()
     foreach ($all_contacts as $c) {
       $class = ($c['id'] == $selected_id) ? 'currentRow' : '';
       $html .= '<a href="index.php?page=edit&id=' . $c['id'] . '" class="' . $class . '">';
-      $html .= $c['surname'] . ' ' . $c['name'];
+      $name = $c['surname'];
+      if (!empty($c['name'])) {
+        $name .= ' ' . mb_substr($c['name'], 0, 1, 'UTF-8') . '.';
+      }
+      if (!empty($c['lastname'])) {
+        $name .= ' ' . mb_substr($c['lastname'], 0, 1, 'UTF-8') . '.';
+      }
+      $html .= $name;
       $html .= '</a>';
     }
     $html .= '</div>';
