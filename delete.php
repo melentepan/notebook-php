@@ -10,24 +10,30 @@ function renderDeleteForm()
   if (isset($_GET['id'])) {
     $id = (int)$_GET['id'];
 
-    $stmt = $db->prepare("SELECT surname FROM contacts WHERE id = :id");
+    $stmt = $db->prepare("SELECT surname, name, lastname FROM contacts WHERE id = :id");
     $stmt->bindValue(':id', $id, PDO::PARAM_INT);
     $stmt->execute();
     $contact = $stmt->fetch();
 
     if ($contact) {
-      $deleted_surname = $contact['surname'];
+      $deleted_name = $contact['surname'];
+      if (!empty($contact['name'])) {
+        $deleted_name .= ' ' . mb_substr($contact['name'], 0, 1, 'UTF-8') . '.';
+      }
+      if (!empty($contact['lastname'])) {
+        $deleted_name .= ' ' . mb_substr($contact['lastname'], 0, 1, 'UTF-8') . '.';
+      }
 
       $stmt = $db->prepare("DELETE FROM contacts WHERE id = :id");
       $stmt->bindValue(':id', $id, PDO::PARAM_INT);
 
       if ($stmt->execute()) {
-        $message = 'Запись с фамилией ' . $deleted_surname . ' удалена';
+        $message = 'Запись с фамилией ' . $deleted_name . ' удалена';
       }
     }
   }
 
-  $stmt = $db->query("SELECT id, surname, name FROM contacts ORDER BY surname, name");
+  $stmt = $db->query("SELECT id, surname, name, lastname FROM contacts ORDER BY surname, name");
   $contacts = $stmt->fetchAll();
 
   $html = '';
@@ -42,7 +48,14 @@ function renderDeleteForm()
     $html .= '<div class="div-edit">';
     foreach ($contacts as $contact) {
       $html .= '<a href="index.php?page=delete&id=' . $contact['id'] . '" style="display: block; padding: 5px; margin: 5px 0;">';
-      $html .= $contact['surname'] . ' ' . $contact['name'];
+      $name = $contact['surname'];
+      if (!empty($contact['name'])) {
+        $name .= ' ' . mb_substr($contact['name'], 0, 1, 'UTF-8') . '.';
+      }
+      if (!empty($contact['lastname'])) {
+        $name .= ' ' . mb_substr($contact['lastname'], 0, 1, 'UTF-8') . '.';
+      }
+      $html .= $name;
       $html .= '</a>';
     }
     $html .= '</div>';
